@@ -1,0 +1,166 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    toc: yes
+    toc_float: true
+---
+
+# Title level 1
+
+## Title level 2
+
+**bold**
+
+*italics*
+
+Load packages
+```{r}
+library(tidyverse)
+library(plotly)
+source("functions.R")
+```
+
+
+
+I downloaded the file and loaded it into R
+```{r}
+download.file("https://raw.githubusercontent.com/swcarpentry/r-novice-gapminder/gh-pages/_episodes_rmd/data/gapminder-FiveYearData.csv", destfile = "data/gapminder-FiveYearData.csv")
+
+gapminder <- read.csv("data/gapminder-FiveYearData.csv")
+
+head(gapminder)
+```
+
+I wonder if rstats increases life expectancy over the years
+
+
+```{r}
+p <- ggplot(data=gapminder,aes(x=year,y=lifeExp)) +
+    geom_point()
+
+p
+```
+
+Let's see the interactive version
+
+```{r}
+ggplotly(p)
+```
+
+# Making your own functions
+
+If you are repeating yourself in your code, you may be able to solve that problem by making your own function!
+
+
+```{r}
+
+
+cars <- c(3,4,5,6,7,10)
+
+se(cars)
+```
+
+
+# Data manipulation with `dplyr`
+
+You will likely want to get subsections of your dataframe and/or calculate means of a variable for a certain subsection, `dplyr` is your friend!
+
+Explored select
+
+```{r}
+gapminder <- read.csv("data/gapminder-FiveYearData.csv")
+
+year_country_gdp <- select(gapminder,year, country, gdpPercap)
+year_country_gdp <- select(gapminder,-pop, -continent, -lifeExp)
+names(year_country_gdp)
+
+```
+
+Explore filter
+
+```{r}
+euro <- filter(gapminder,continent=="Europe")
+year_country_gdp_euro <- select(euro,year, country, gdpPercap)
+
+year_country_gdp_euro <- gapminder  %>% 
+    filter(continent=="Europe") %>% 
+    select(year, country, gdpPercap)
+```
+
+
+exploring the amazing group_by and summarize functions
+
+```{r}
+mean_gdp_percountry <- gapminder %>% 
+    group_by(country) %>% 
+    summarise(mean_gdp=mean(gdpPercap),
+              se_gdp=se(gdpPercap))
+
+mean_gdp_percountry
+```
+
+Challenge: I want the mean, se, and sample size of life expetancy by continent
+```{r}
+mean_se_life_percontinent<-gapminder %>% 
+  group_by(continent,country) %>% 
+  summarise(mean_life=mean(lifeExp),
+            se_life=se(lifeExp),
+            samsize_life=n())
+
+mean_se_life_percontinent
+```
+
+combining ggplot and dplyr
+
+```{r}
+euro_countries <- gapminder %>% 
+    filter(continent=="Europe") %>% 
+    ggplot(aes(x=year,y=lifeExp,color=country)) +
+    geom_line()+
+    facet_wrap(~country)
+
+euro_countries
+ggsave("euro.png")
+write.csv(mean_gdp_percountry,"processed/mean_gdp_percountry.csv")
+```
+
+
+# Data manipulation with `tidyr`
+
+```{r}
+# command to download the 'wide' data
+download.file("https://raw.githubusercontent.com/swcarpentry/r-novice-gapminder/gh-pages/data/gapminder_wide.csv", destfile = "data/gapminder_wide.csv")
+
+gapminder_wide <- read.csv("data/gapminder_wide.csv")
+
+gap_long <- gapminder_wide %>% 
+    gather(obstype_year,
+           obs_values,
+           3:38)
+
+head(gap_long)
+```
+
+separate the obs_type column
+
+```{r}
+gap_normal <- gap_long %>% 
+    separate(obstype_year,into=c("obs_type","year"),sep="_") %>% 
+    spread(obs_type,obs_values)
+
+head(gap_normal)
+
+all.equal(gapminder,gap_normal)
+```
+
+```{r}
+gap_normal <- gap_normal %>% 
+    arrange(country,continent,year)
+all.equal(gapminder,gap_normal)
+
+```
+
+
+
+
