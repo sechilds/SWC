@@ -15,6 +15,8 @@ I hope everyone is enjoying using git.
 
 Here is some text in the second level of the document.
 
+Here is a line that will show up on the web.
+
 **bold**
 
 *italics*
