@@ -8,6 +8,9 @@ output:
 
 # Title level 1
 
+This is the second day of Software Carpentry!
+I hope everyone is enjoying using git.
+
 ## Title level 2
 
 **bold**
